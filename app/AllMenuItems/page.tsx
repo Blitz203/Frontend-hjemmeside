@@ -1,50 +1,63 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sideBar";
-import Link from "next/link";
+import { Menu } from "lucide-react";
+import Navbar from "../components/navBar";
 
 const MenuItems = () => {
-  // Static data for now
-  const menuItems = [
-    {
-      id: 1,
-      name: "Bruschetta",
-      description: "Grilled bread with tomato and basil",
-      price: 4500, // Assuming price is in cents
-    },
-    {
-      id: 2,
-      name: "Steak",
-      description: "Grilled sirloin steak with sides",
-      price: 15000,
-    },
-    {
-      id: 3,
-      name: "Cheesecake",
-      description: "Classic New York cheesecake",
-      price: 6000,
-    },
-    {
-      id: 4,
-      name: "Red Wine",
-      description: "Glass of premium red wine",
-      price: 8000,
-    },
-  ];
+  const [data, setData] = useState<any[]>([]); // Store fetched menu items (array of objects)
+  const [error, setError] = useState<string | null>(null); // Error handling
+  const [loading, setLoading] = useState(true); // For loading state
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:5005/menu_items", {
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log(result);
+
+        setData(result);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 p-8 bg-gray-100">
-        {/* Row layout for items */}
+    <div className="h-screen flex flex-col">
+      <Navbar />
+      <div className="flex-1 p-8 bg-gray-100 overflow-auto">
         <div className="flex flex-wrap gap-6">
-          {menuItems.map((item) => (
+          {data.map((item) => (
             <div
               key={item.id}
-              className="box-border h-64 w-64 p-4 border-4 flex flex-col justify-between"
+              className="box-border h-64 w-64 p-4 border-4 flex flex-col justify-between bg-white shadow-md"
             >
               <h3 className="text-lg font-semibold">{item.name}</h3>
               <p className="text-sm">{item.description}</p>
-              <p className="text-lg font-bold">{(item.price / 100).toFixed(2)}</p>
+              <p className="text-lg font-bold">
+                {(item.price_in_oere / 100).toFixed(2)} kr
+              </p>
             </div>
           ))}
         </div>
