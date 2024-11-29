@@ -1,97 +1,131 @@
-"use client";
+"use client"
 import React, { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import NavBar from "../components/navBar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import axios from "axios";
 
-function Reservation() {
-  const [activeTab, setActiveTab] = useState("calendar"); // manage active tab
+const ReservationForm = () => {
+  const [time, setTime] = useState("");
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
+  const [comment, setComment] = useState("");
+  const [email, setEmail] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhoneNumber, setCustomerPhoneNumber] = useState("");
+  const [roleId, setRoleId] = useState(""); // This will be your roleId, e.g., waiter, customer, etc.
 
-  const generateTimeOptions = () => {
-    const times = [];
-    let currentTime = new Date();
-    currentTime.setHours(10, 30, 0, 0); // Start time: 10:30
-    const endTime = new Date();
-    endTime.setHours(19, 30, 0, 0); // End time: 19:30
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
-    while (currentTime <= endTime) {
-      times.push(
-        currentTime.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+    const reservationData = {
+      time,
+      number_of_people: numberOfPeople,
+      comment,
+      email,
+      customer_name: customerName,
+      customer_phone_number: customerPhoneNumber,
+      roleId, // Add roleId here if needed
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5005/api/reservations", // Replace with your API endpoint
+        reservationData
       );
-      currentTime.setMinutes(currentTime.getMinutes() + 15);
+      console.log("Reservation created:", response.data);
+      alert("Reservation successfully created!");
+    } catch (error) {
+      console.error("Error creating reservation:", error);
+      alert("There was an error creating the reservation.");
     }
-
-    return times;
   };
 
-  const timeOptions = generateTimeOptions();
-
   return (
-    <div>
-      <NavBar />
-      <main>
-        {/* Tabs Section */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="flex justify-center">
-            <TabsTrigger value="calendar">Dato</TabsTrigger>
-            <TabsTrigger value="empty">Gæster</TabsTrigger>
-            <TabsTrigger value="time-selector">Tid</TabsTrigger>
-            <TabsTrigger value="Bekræft">Bekræft</TabsTrigger>
-          </TabsList>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="customerName">Customer Name</label>
+        <input
+          type="text"
+          id="customerName"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          required
+          className="border p-2"
+        />
+      </div>
 
-          <TabsContent value="calendar">
-            <div>
-              <Calendar />
-            </div>
-          </TabsContent>
-          <TabsContent value="Gæster">
-            <div className="flex gap-2">
-              {Array.from({ length: 20 }, (_, index) => (
-                <button
-                  key={index}
-                  className="rounded-full bg-blue-500 text-white w-10 h-10 flex items-center justify-center"
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="time-selector">
-            <div>
-              <h2 className="text-lg font-bold mb-4">Select a Time:</h2>
-              <select className="border rounded p-2 w-full max-w-xs">
-                {timeOptions.map((time, index) => (
-                  <option key={index} value={time}>
-                    {time}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </TabsContent>
-        </Tabs>
+      <div>
+        <label htmlFor="customerPhoneNumber">Phone Number</label>
+        <input
+          type="tel"
+          id="customerPhoneNumber"
+          value={customerPhoneNumber}
+          onChange={(e) => setCustomerPhoneNumber(e.target.value)}
+          required
+          className="border p-2"
+        />
+      </div>
 
-        {/* Button to manually switch to a specific tab */}
-        <button onClick={() => setActiveTab("Gæster")}>
-          Click me after selection
-        </button>
-      </main>
-    </div>
+      <div>
+        <label htmlFor="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="border p-2"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="time">Reservation Time</label>
+        <input
+          type="datetime-local"
+          id="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          required
+          className="border p-2"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="numberOfPeople">Number of People</label>
+        <input
+          type="number"
+          id="numberOfPeople"
+          value={numberOfPeople}
+          onChange={(e) => setNumberOfPeople(parseInt(e.target.value))}
+          min="1"
+          required
+          className="border p-2"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="comment">Comment</label>
+        <textarea
+          id="comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="border p-2"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="roleId">Role ID (optional)</label>
+        <input
+          type="text"
+          id="roleId"
+          value={roleId}
+          onChange={(e) => setRoleId(e.target.value)}
+          className="border p-2"
+        />
+      </div>
+
+      <button type="submit" className="bg-blue-500 text-white p-2">
+        Create Reservation
+      </button>
+    </form>
   );
-  {
-    /* TODO: Add guest count input */
-  }
-  {
-    /* TODO: Add user information form */
-  }
-  {
-    /* TODO: get availability from API */
-  }
-  {
-    /* TODO: if date selected navigate to the next tab and replace the tab name with the selected information */
-  }
-}
+};
 
-export default Reservation;
+export default ReservationForm;
